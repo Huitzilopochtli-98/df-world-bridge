@@ -1,0 +1,27 @@
+local root=os.getenv('WORLD_BRIDGE_TEST_ROOT') or 'work/world-bridge-mod'
+local project=dofile(root..'/lua/world-bridge/project.lua')
+local source={{x=1,y=1},{x=2,y=1},{x=3,y=1},{x=4,y=1}}
+local p=project.create(3,source,20,100)
+source[2].x=99
+assert(p.path[2].x==2 and project.missing(p)==40 and p.duration_ticks==200)
+assert(project.fund(p,15,1000)==15 and p.state=='funding' and project.missing(p)==25)
+assert(not pcall(project.fund,p,26,1000))
+assert(p.supplied_blocks==15)
+assert(project.advance(p,2000)=='funding')
+assert(project.fund(p,25,2000)==25 and p.state=='building')
+assert(project.advance(p,2199)=='building')
+assert(project.advance(p,2200)=='ready')
+assert(project.advance(p,3000)=='ready')
+assert(not pcall(project.fund,p,1,3000))
+assert(not pcall(project.mark_complete,p,{road_id=1,bridge_ids={2}}))
+assert(p.state=='ready')
+project.mark_complete(p,{road_id=1,bridge_ids={2,3}})
+assert(project.advance(p,4000)=='complete')
+assert(not pcall(project.mark_complete,p))
+assert(not pcall(project.create,1,{{x=0,y=0},{x=2,y=0},{x=3,y=0}},1,1))
+assert(not pcall(project.create,1,{{x=0,y=0},{x=1,y=0},{x=0,y=0}},1,1))
+local bad=project.create(4,{{x=0,y=0},{x=1,y=0},{x=2,y=0}},1,1)
+bad.supplied_blocks=3
+assert(not project.validate(bad))
+assert(not pcall(project.fund,bad,1,10))
+print('project accounting tests passed')

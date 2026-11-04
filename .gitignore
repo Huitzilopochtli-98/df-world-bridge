@@ -1,0 +1,17 @@
+dist/
+validation/
+__pycache__/
+*.py[cod]
+*.zip
+*.log
+*.sav
+.env
+.env.*
+save/
+region*/
+dfhack-config/world-bridge-install.json
+dfhack-config/world-bridge-backups/
+*publish-state*.json
+workshop/publication.json
+.DS_Store
+Thumbs.db

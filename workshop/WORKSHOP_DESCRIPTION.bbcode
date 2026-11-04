@@ -1,0 +1,50 @@
+[h1]World Bridge[/h1]
+Plan and fund massive crossings between islands and continents from your fortress.
+Choose the shores directly on Dwarf Fortress's graphical world map.
+
+[b]Requires DFHack. Development build: use a copied save.[/b]
+
+[h2]How to use it[/h2]
+1. Install DFHack. Supported: Windows, Steam DF 53.16, DFHack 53.16-r3.
+2. Subscribe, let Steam finish the download, and restart the game through DFHack.
+3. Load a copied fortress save. Press Ctrl+Shift+D and run [code]world-bridge[/code]
+4. Click land on each shore, review the route, create the project, and deliver blocks.
+
+The Workshop download contains the working mod. No manual mod-file installation
+or new world is required. You do not need to select it during world generation.
+Use one installation method: remove an older manual copy before using Workshop,
+since manual scripts can take priority over subscribed scripts.
+
+[h2]Construction[/h2]
+[b]100 blocks and 14 game days per water world tile.[/b] Shore tiles add no cost.
+For example, three water tiles require 300 blocks and 42 days. Time starts after
+full funding. Existing projects keep their saved costs and progress.
+
+Completed crossings can materialize as elevated, three-wide local decks with
+supports where their route intersects a loaded fortress map. The planner checks
+terrain, water, headroom and existing construction before placement.
+
+[h2]Travel[/h2]
+Optional experimental raid routing guides assembled squads across verified
+bridge routes and handles their return. Optional caravan access lets the native
+game schedule traders from newly connected peaceful civilizations. Native seasons,
+diplomacy and trade requirements still apply; enabling access does not summon a
+caravan immediately. Other mission types and split armies are unsupported.
+
+[h2]Controls[/h2]
+W/A/S/D, arrows over the map, or middle drag: pan. Ctrl+C: center on fortress.
+Ctrl+N: create. Ctrl+D: deliver. Ctrl+B: build or verify a local deck.
+Ctrl+T: raid routing. Ctrl+E: caravan access. Ctrl+L: automatic local decks.
+Esc closes the planner and leaves the native world map open.
+
+[h2]Important limits[/h2]
+This is version 0.4.1-dev. Use a copied save. Blocks are consumed, world records
+remain after uninstalling, and local placement changes terrain beneath supports.
+Land passability is approximated. Individual caravan world routes are not observed.
+Do not unsubscribe during a guided squad trip. The planner uses the normal 1x map;
+close World Map Zoom before opening it. Other DF/DFHack builds are not verified.
+
+[h2]Open source[/h2]
+All runtime source is readable Lua inside the Workshop download. MIT licensed:
+you may change, extend and redistribute it. See LICENSE. Independent project;
+not an official Bay 12 or DFHack release.
