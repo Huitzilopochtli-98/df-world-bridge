@@ -10,6 +10,7 @@ local runtime=require('world-bridge.runtime')
 local materials=require('world-bridge.materials')
 local coordinates=require('world-bridge.map-coordinates')
 local native=require('world-bridge.native-map')
+local removal=require('world-bridge.removal')
 local env=adapter.environment()
 local function key(x,y)return x..','..y end
 local function show_error(message)dialogs.showMessage('World Bridge',tostring(message),COLOR_LIGHTRED)end
@@ -38,6 +39,10 @@ function WorldBridgeWindow:init()
         widgets.HotkeyLabel{frame={l=1,t=37},key='CUSTOM_CTRL_T',label=function()return 'Raid routing: '..(runtime.is_automatic_enabled() and 'on' or 'off') end,on_activate=self:callback('toggleRouting')},
         widgets.HotkeyLabel{frame={l=1,t=39},key='CUSTOM_CTRL_L',label=function()return 'Automatic local decks: '..(require('world-bridge.local-sync').enabled(env.persistent) and 'on' or 'off') end,on_activate=self:callback('toggleLocalDecks')},
         widgets.HotkeyLabel{frame={l=1,t=41},key='CUSTOM_CTRL_E',label=function()return 'Caravan access: '..(runtime.is_trade_enabled() and runtime.is_active() and 'on' or 'off') end,on_activate=self:callback('toggleTradeLinks')},
+        widgets.HotkeyLabel{frame={l=1,t=43},key='CUSTOM_CTRL_X',label=function()
+            local p=self:selectedOwnedProject()
+            return p and p.state=='complete' and 'Remove bridge' or 'Cancel project'
+        end,on_activate=self:callback('removeProject'),disabled=function()return not self:selectedOwnedProject() end},
         widgets.Label{frame={l=1,b=0},text='Esc: close planner'},
     }
     self:centerFortress();self:refreshProjects()
@@ -99,6 +104,25 @@ end
 function WorldBridgeWindow:selectedCompletedProject()
     local _,choice=self.subviews.projects:getSelected()
     if choice and choice.data.project.state=='complete' then return choice.data.project end
+end
+function WorldBridgeWindow:selectedOwnedProject()
+    local _,choice=self.subviews.projects:getSelected()
+    if choice and choice.data.owner_site_id==env.site_id then return choice.data.project end
+end
+function WorldBridgeWindow:removeProject()
+    local p=self:selectedOwnedProject()
+    if not p then return end
+    local ok,preview=pcall(removal.preview,env,p.id)
+    if not ok then show_error(preview);return end
+    p=preview.project
+    local completed=p.state=='complete'
+    dialogs.showYesNoPrompt(completed and 'Remove bridge' or 'Cancel project',removal.summary(preview),COLOR_WHITE,function()
+        local removed,err=pcall(removal.run,env,p.id,p.state,p.supplied_blocks)
+        if not removed then show_error(err);return end
+        self:refreshProjects()
+        self:clearSelection()
+        self:setMessage(completed and 'Bridge removed. Its route can be planned again.' or 'Project canceled.')
+    end)
 end
 function WorldBridgeWindow:buildLocalDeck()
     local p=self:selectedCompletedProject();if not p then return end

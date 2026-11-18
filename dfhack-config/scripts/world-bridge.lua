@@ -49,6 +49,8 @@ local function usage()
     print('world-bridge local-decks on|off')
     print('world-bridge deliver <project-id> <number-of-blocks>')
     print('world-bridge advance <project-id>')
+    print('world-bridge cancel <project-id> [--confirm]')
+    print('world-bridge remove <project-id> [--confirm]')
     print('world-bridge guide <controller-id> <army-id>')
     print('world-bridge cancel-guidance')
     print('world-bridge guidance-status')
@@ -134,6 +136,23 @@ elseif args[1]=='advance' and #args==2 then
     if not success then qerror(p) end
     if not p then qerror(err) end
     print_project(p)
+elseif (args[1]=='cancel' or args[1]=='remove') and (#args==2 or (#args==3 and args[3]=='--confirm')) then
+    local removal=require('world-bridge.removal')
+    local id=integer_arg(2)
+    local success,preview=pcall(removal.preview,env,id)
+    if not success then qerror(preview) end
+    local p=preview.project
+    local completed=p.state=='complete'
+    if completed and args[1]~='remove' then qerror('Use remove for a completed bridge.') end
+    if not completed and args[1]~='cancel' then qerror('Use cancel for an unfinished project.') end
+    if not args[3] then
+        print(removal.summary(preview))
+        print(('Run world-bridge %s %d --confirm to proceed.'):format(args[1],id))
+        return
+    end
+    local removed,err=pcall(removal.run,env,id,p.state,p.supplied_blocks)
+    if not removed then qerror(err) end
+    print(completed and 'Bridge removed.' or 'Project canceled.')
 elseif args[1]=='guide' and #args==3 then
     local controller_id,army_id=integer_arg(2),integer_arg(3)
     local success,result=pcall(steering.begin,env,controller_id,army_id)

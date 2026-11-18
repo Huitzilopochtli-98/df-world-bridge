@@ -30,6 +30,128 @@ function M.verify(env,entry)
     end
     return true
 end
+
+local function cell_key(x,y,z)
+    return x..','..y..','..z
+end
+
+function M.prepare_removal(env,entry)
+    local intact,why=M.verify(env,entry)
+    assert(intact,why)
+    local map=df.global.world.map
+    local footprint,tiles,records,indices={}, {}, {}, {}
+    local list=df.global.world.event.constructions
+    for _,cell in ipairs(entry.cells) do
+        local pos={x=cell.x,y=cell.y,z=cell.z}
+        local record=dfhack.constructions.findAtTile(pos)
+        footprint[cell_key(cell.x,cell.y,cell.z)]=true
+        tiles[#tiles+1]={cell=cell,block=dfhack.maps.getTileBlock(pos)}
+        local _,address=df.sizeof(record)
+        assert(address and not records[address],'unexpected local construction reference')
+        records[address]=record
+    end
+
+    local function inspect(x,y,z)
+        if x<0 or y<0 or z<0 or x>=map.x_count or y>=map.y_count or z>=map.z_count then return end
+        local pos={x=x,y=y,z=z}
+        local block=dfhack.maps.getTileBlock(pos)
+        assert(block,'nearby local terrain is unavailable')
+        local lx,ly=x%16,y%16
+        local d,o=block.designation[lx][ly],block.occupancy[lx][ly]
+        local attrs=df.tiletype.attrs[block.tiletype[lx][ly]]
+        return pos,d,o,attrs
+    end
+    local function clear(pos,d,o)
+        assert(not (o.unit or o.unit_grounded or o.item or o.vehicle or o.monster_lair or d.pile or
+            o.building~=df.tile_building_occ.None or dfhack.buildings.findAtTile(pos)),
+            ('a unit, item, vehicle, stockpile or building is on or above the deck at %d,%d,%d'):format(pos.x,pos.y,pos.z))
+        assert(not d.hidden and not d.water_table and d.dig==df.tile_dig_designation.No,
+            ('unsafe terrain or designation at %d,%d,%d'):format(pos.x,pos.y,pos.z))
+    end
+    local function check_water_boundary(pos,d,attrs)
+        local solid=attrs and df.tiletype_shape.attrs[attrs.shape].basic_shape==df.tiletype_shape_basic.Wall
+        assert(not d.hidden and not d.water_table and
+            (solid or (d.flow_size>0 and not d.liquid_type)),
+            ('water boundary changed near %d,%d,%d'):format(pos.x,pos.y,pos.z))
+    end
+    local directions={{1,0},{-1,0},{0,1},{0,-1}}
+    for _,cell in ipairs(entry.cells) do
+        local pos,d,o=inspect(cell.x,cell.y,cell.z)
+        clear(pos,d,o)
+        local above,ad,ao=inspect(cell.x,cell.y,cell.z+1)
+        if above then
+            clear(above,ad,ao)
+            if not footprint[cell_key(above.x,above.y,above.z)] then
+                assert(ad.flow_size==0 and not dfhack.constructions.findAtTile(above),
+                    'liquid or another construction is above the bridge')
+            end
+        end
+        local wet=cell.before_water>0 or cell.source
+        local sides={}
+        for _,dir in ipairs(directions) do
+            local x,y,z=cell.x+dir[1],cell.y+dir[2],cell.z
+            if not footprint[cell_key(x,y,z)] then
+                local side,sd,so,attrs=inspect(x,y,z)
+                if side then
+                    assert(not dfhack.constructions.findAtTile(side) and
+                        so.building==df.tile_building_occ.None and not dfhack.buildings.findAtTile(side),
+                        'another construction or building touches the bridge')
+                    sides[#sides+1]={pos=side,designation=sd,attrs=attrs}
+                    wet=wet or (cell.kind=='pillar' and sd.flow_size>0)
+                end
+            end
+        end
+        if wet then
+            for _,side in ipairs(sides) do check_water_boundary(side.pos,side.designation,side.attrs) end
+            local original=df.tiletype.attrs[cell.before_tile]
+            assert(original,'unknown original bridge terrain')
+            if original.shape==df.tiletype_shape.EMPTY and
+                not footprint[cell_key(cell.x,cell.y,cell.z-1)] then
+                local below,bd,_,attrs=inspect(cell.x,cell.y,cell.z-1)
+                if below then check_water_boundary(below,bd,attrs) end
+            end
+        end
+    end
+    for i,record in ipairs(list) do
+        local _,address=df.sizeof(record)
+        if records[address] then indices[#indices+1]=i end
+    end
+    assert(#indices==#tiles,'local construction list changed')
+    return {
+        detach=function(remember)
+            for i=#indices,1,-1 do
+                local index=indices[i]
+                local record=list[index]
+                list:erase(index)
+                remember(function() list:insert(index,record) end)
+            end
+            for i=#tiles,1,-1 do
+                local cell,block=tiles[i].cell,tiles[i].block
+                local x,y=cell.x%16,cell.y%16
+                local designation=block.designation[x][y]
+                local old_liquid=designation.liquid_type
+                remember(function()
+                    block.tiletype[x][y]=cell.after_tile
+                    designation.flow_size=0
+                    designation.liquid_type=old_liquid
+                end)
+                block.tiletype[x][y]=cell.before_tile
+                -- Let existing water and unchanged sources refill the space.
+                -- Old depths can be wrong after seasons or drainage.
+                if cell.before_water>0 then designation.liquid_type=false end
+            end
+        end,
+        dispose=function()
+            for _,record in pairs(records) do record:delete() end
+            for _,tile in ipairs(tiles) do
+                tile.block.flags.update_liquid=true
+                tile.block.flags.update_liquid_twice=true
+            end
+            invalidate()
+        end,
+    }
+end
+
 function M.suggested_z(env,project_id)
     for _,entry in ipairs(ledger.load(env.persistent).entries) do
         if entry.project_id==project_id then return entry.absolute_z-df.global.world.map.region_z end

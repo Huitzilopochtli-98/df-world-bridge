@@ -13,6 +13,10 @@ local function load(persistent)
     return d
 end
 local function save(persistent,d) persistent.saveWorldData(M.KEY,d) end
+function M.has_trips(env)
+    local data=load(env.persistent)
+    return #data.states>0 or #data.watches>0
+end
 local function belongs(a,c)
     return a and (a.controller_id==c.id or (a.controller and a.controller.parent_id==c.id))
 end

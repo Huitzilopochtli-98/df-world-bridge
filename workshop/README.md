@@ -31,6 +31,15 @@ after the project is fully funded. Old saved projects retain their original cost
 - Ctrl+T: experimental raid routing. Ctrl+E: optional caravan access.
 - Ctrl+L: automatic local decks. Esc closes the planner.
 
+## Cancel or remove a bridge
+
+Select a project owned by your fortress and press **Ctrl+X**. The confirmation
+shows what will be removed. Delivered blocks are spent and will not be returned.
+For a completed bridge, turn off raid routing and caravan access if enabled,
+and wait for guided squads and caravans to finish. Removal checks the world
+records and restores the original tiles of a verified, clear local deck. It
+refuses changed or occupied decks and sections on an unloaded fortress map.
+
 ## Development limits
 
 Use a copied save. Projects consume real blocks and create world-construction

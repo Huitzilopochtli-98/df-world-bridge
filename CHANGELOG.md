@@ -1,5 +1,13 @@
 # Development changes
 
+## 0.5.0-dev
+
+- Cancel unfinished projects from the planner or DFHack command line.
+- Remove completed bridges after checking ownership, world travel, and the
+  condition of any local deck. Restore the original terrain tiles and let
+  existing water refill the space.
+- Roll back native changes and both ledgers if removal fails before commit.
+
 ## 0.4.2-dev
 
 - Adds support for Steam Dwarf Fortress 53.17 with DFHack 53.17-r1 on Windows.

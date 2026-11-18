@@ -1,7 +1,7 @@
 # World Bridge
 
 World Bridge is a DFHack mod for fortress-funded crossings between islands.
-This is version **0.4.2-dev**, an unfinished development build. Use a copied
+This is version **0.5.0-dev**, an unfinished development build. Use a copied
 save: it creates world-construction records and consumes real blocks.
 
 Supported Windows Steam builds are **Dwarf Fortress 53.17 with DFHack 53.17-r1**
@@ -66,6 +66,23 @@ project accounting. A failed restoration pauses the game and reports the issue.
 Projects are stored in the world and belong to their originating fortress.
 Only that fortress can fund and advance them. The planner currently supports
 cardinal routes through ocean or lake, with a limit of 64 water tiles.
+
+## Cancel a project or remove a bridge
+
+Select a project owned by your fortress and press **Ctrl+X** in the planner.
+Review the confirmation before proceeding. Delivered blocks are spent and will
+not be returned. Canceling an unfinished project frees its route for reuse.
+
+For a completed bridge, turn off raid routing (**Ctrl+T**) and caravan access
+(**Ctrl+E**) first if enabled. Wait for guided squads and caravans to finish.
+Removal checks the world records and every recorded deck tile. It restores
+the original terrain tiles on the loaded map and lets existing water refill
+the space. It refuses occupied or altered decks, nearby obstructions or
+changed water boundaries, and deck sections on an unloaded fortress map.
+
+At the DFHack prompt, run `world-bridge cancel <id>` for an unfinished project
+or `world-bridge remove <id>` for a completed bridge. Review the preview and
+append `--confirm` to proceed. Pause the game before removing a completed bridge.
 
 ## Experimental raid travel
 
@@ -158,8 +175,8 @@ viewing completed bridge indicators outside the planner.
 
 Do not remove or disable the mod during a guided trip. Guidance changes
 native mission targets temporarily; keep the mod installed until the trip
-finishes. Native world-construction records remain in a save after removing
-the scripts.
+finishes. Native world-construction records remain in the save after unsubscribing.
+Use the planner to remove a bridge you no longer want.
 
 ## Commands and source
 

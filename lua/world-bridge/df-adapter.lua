@@ -1,6 +1,7 @@
 -- DFHack-specific environment for the project service. Experimental.
 local construction=require('world-bridge.construction')
 local project=require('world-bridge.project')
+local removal=require('world-bridge.df-removal')
 local M={}
 -- Each Windows Steam build is paired with the tested DFHack code and structures.
 local verified_builds={
@@ -33,7 +34,7 @@ function M.environment()
     local site_id=df.global.plotinfo.site_id
     return {world=w,persistent=dfhack.persistent,site_id=site_id,classify=classify,
         now=function()return df.global.cur_year*403200+df.global.cur_year_tick end,
-        construction=construction,
+        construction=construction,removal=removal,
         validate_plan=function(p)
             -- Preflight with a synthetic, fully funded copy; no item is used.
             local trial=project.create(p.id,p.path,1,1)

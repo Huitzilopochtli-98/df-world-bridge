@@ -162,4 +162,88 @@ function M.verify(w,p)
     end
     return true
 end
+
+-- Save the exact vector positions for rollback. Native objects stay alive
+-- until both ledgers have been committed.
+function M.prepare_removal(w,p)
+    local intact,why=M.verify(w,p)
+    assert(intact,why)
+    local ids={[p.construction.road_id]=true}
+    for _,id in ipairs(p.construction.bridge_ids) do ids[id]=true end
+    local d=w.constructions
+    local groups,records,children,seen_children={},{},{},{}
+    local function retain(square)
+        local _,address=df.sizeof(square)
+        assert(address,'cannot identify a native construction square')
+        if not seen_children[address] then
+            children[#children+1]=square
+            seen_children[address]=true
+        end
+    end
+    local function references_road(square)
+        return square._type==df.world_construction_square_bridgest and
+            ids[square.road_id]
+    end
+    local function add_group(vector,indices)
+        if #indices>0 then groups[#groups+1]={vector=vector,indices=indices} end
+    end
+    local indices,seen_ids={},{}
+    for i,record in ipairs(d.list) do
+        if ids[record.id] then
+            assert(not seen_ids[record.id],'duplicate native construction ID')
+            seen_ids[record.id]=true
+            records[#records+1]=record
+            indices[#indices+1]=i
+            if record.id~=p.construction.road_id then
+                assert(#record.square_obj==0,'bridge record contains unexpected squares')
+            end
+            for _,square in ipairs(record.square_obj) do retain(square) end
+        else
+            for _,square in ipairs(record.square_obj) do
+                assert(not ids[square.construction_id] and not references_road(square),
+                    'another world construction uses this bridge')
+            end
+        end
+    end
+    assert(#records==#p.path-1,'native construction list changed')
+    add_group(d.list,indices)
+    local count=0
+    for bx=0,d.width-1 do
+        for by=0,d.height-1 do
+            local block=d.map[bx]:_displace(by)
+            if block then
+                indices={}
+                for i,square in ipairs(block.square) do
+                    if ids[square.construction_id] then
+                        count=count+1
+                        indices[#indices+1]=i
+                        retain(square)
+                    else
+                        assert(not references_road(square),'another world construction uses this bridge')
+                    end
+                end
+                add_group(block.square,indices)
+            end
+        end
+    end
+    assert(count==2*#p.path-2,'unexpected native squares reference this bridge')
+    return {
+        detach=function(remember)
+            for _,group in ipairs(groups) do
+                local vector=group.vector
+                for i=#group.indices,1,-1 do
+                    local index=group.indices[i]
+                    local value=vector[index]
+                    vector:erase(index)
+                    remember(function() vector:insert(index,value) end)
+                end
+            end
+        end,
+        dispose=function()
+            for _,record in ipairs(records) do record.square_obj:resize(0) end
+            for _,square in ipairs(children) do square:delete() end
+            for _,record in ipairs(records) do record:delete() end
+        end,
+    }
+end
 return M
