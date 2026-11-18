@@ -1,5 +1,10 @@
 # Development changes
 
+## 0.4.2-dev
+
+- Adds support for Steam Dwarf Fortress 53.17 with DFHack 53.17-r1 on Windows.
+- Keeps support for Steam Dwarf Fortress 53.16 with DFHack 53.16-r3 on Windows.
+
 ## 0.4.1-dev
 
 - Full Steam Workshop delivery, with Lua modules loaded from the subscribed

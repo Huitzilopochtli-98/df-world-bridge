@@ -2,13 +2,23 @@
 local construction=require('world-bridge.construction')
 local project=require('world-bridge.project')
 local M={}
+-- Each Windows Steam build is paired with the tested DFHack code and structures.
+local verified_builds={
+    ['v0.53.16 win64 STEAM']={
+        commit='0bf381cc1615656acf756e6e67573fffca715125',
+        xml='d8ff8a6326db37c11dc4173fadcf30b56e51b42d',
+    },
+    ['v0.53.17 win64 STEAM']={
+        commit='3bc63a220af608e1cf20b123dc45bc0a22e296ab',
+        xml='611369f12c5f214e0f8114900398ba74e8a2dd2f',
+    },
+}
 function M.environment()
     assert(dfhack.isMapLoaded() and dfhack.world.isFortressMode(), 'load a fortress first')
     -- World-construction and controller layouts are native, version-specific
     -- structures. Refuse writes until another build has been tested.
-    assert(dfhack.getDFVersion()=='v0.53.16 win64 STEAM' and
-        dfhack.getGitCommit()=='0bf381cc1615656acf756e6e67573fffca715125' and
-        dfhack.getGitXmlCommit()=='d8ff8a6326db37c11dc4173fadcf30b56e51b42d',
+    local build=verified_builds[dfhack.getDFVersion()]
+    assert(build and dfhack.getGitCommit()==build.commit and dfhack.getGitXmlCommit()==build.xml,
         'unsupported DF/DFHack build; World Bridge needs a verified build')
     local w=df.global.world.world_data
     local function classify(x,y)

@@ -60,4 +60,4 @@ try {
 }
 Write-Host "World Bridge installed: $gameRoot"
 Write-Host 'Restart Dwarf Fortress, load a copied fortress save, and run: world-bridge'
-Write-Host 'This development build currently verifies only DF 53.16 / DFHack 53.16-r3 on Windows.'
+Write-Host 'Supported Windows Steam builds: DF 53.17 / DFHack 53.17-r1 and DF 53.16 / DFHack 53.16-r3.'

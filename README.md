@@ -1,12 +1,12 @@
 # World Bridge
 
 World Bridge is a DFHack mod for fortress-funded crossings between islands.
-This is version **0.4.1-dev**, an unfinished development build. Use a copied
+This is version **0.4.2-dev**, an unfinished development build. Use a copied
 save: it creates world-construction records and consumes real blocks.
 
-The current verified build is **Dwarf Fortress 53.16 with DFHack 53.16-r3 on
-Windows**. The mod checks the exact DFHack build before enabling its native
-adapters. Other builds are not supported yet.
+Supported Windows Steam builds are **Dwarf Fortress 53.17 with DFHack 53.17-r1**
+and **Dwarf Fortress 53.16 with DFHack 53.16-r3**. The mod checks the exact
+game and DFHack build before enabling its native adapters.
 
 ## Install from this repository
 

@@ -6,8 +6,8 @@ PowerShell installer.
 
 ## Start here
 
-1. Install DFHack for your game. This development build supports **Windows,
-   Steam Dwarf Fortress 53.16, and DFHack 53.16-r3**.
+1. Install DFHack for your game. On Windows, use **Steam Dwarf Fortress 53.17
+   with DFHack 53.17-r1** or **Steam Dwarf Fortress 53.16 with DFHack 53.16-r3**.
 2. Subscribe to World Bridge and let Steam finish downloading it.
 3. Restart the game through DFHack, then load a **copied fortress save**.
 4. Press **Ctrl+Shift+D**, type **`world-bridge`**, and press Enter.
